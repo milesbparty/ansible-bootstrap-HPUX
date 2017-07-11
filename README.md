@@ -3,8 +3,8 @@ Bootstrap HP-UX servers for management by Ansible
 
 Required packages (HP-UX 11.31, ia64):
 
-bzip2-1.0.6-ia64-11.31.depot
-expat-2.2.0-ia64-11.31.depot
+bzip2-1.0.6-ia64-11.31.depot<br>
+expat-2.2.0-ia64-11.31.depot<br>
 gdbm-1.13-ia64-11.31.depot
 gettext-0.19.8.1-ia64-11.31.depot
 libffi-3.2.1-ia64-11.31.depot
