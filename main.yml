@@ -20,11 +20,6 @@
   raw: cat /var/tmp/isd_rsa.new >> ~root/.ssh/authorized_keys
   #raw: cat /var/tmp/isd_rsa.new | awk -F" " '{print $3}' | xargs -i grep -c {} ~root/.ssh/authorized_keys || cat /var/tmp/isd_rsa.new >> ~root/.ssh/authoized_keys
 
-# Instlal Python on RHEL servers
-- name: Install Python for RHEL
-  raw: -a "yum install -y python2 python-simplejson"
-  when: stdout.raw_OS == "Linux"
-
 # Install Python on HP-UX servers
 - name: Create temporary directory to copy install files
   raw: /usr/bin/mkdir -p /var/tmp/python_install
