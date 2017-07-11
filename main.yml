@@ -1,0 +1,73 @@
+---
+
+- name: Register OS variable using raw in case Python is not installed
+  raw: uname -a | awk '{print $1}'
+  register: raw_OS
+
+- name: Print OS
+  debug:
+    msg: "{{ raw_OS.stdout }}"
+
+- name: Check for .ssh in root home directory
+  raw: "{{ item }}"
+  with_items:
+    - test -e ~root/.ssh || /usr/bin/mkdir ~root/.ssh
+    
+- name:  Get copy public SSH key
+  local_action: command /usr/bin/scp ~root/.ssh/id_rsa.pub {{ inventory_hostname }}:/var/tmp/isd_rsa.new
+   
+- name: Copy SSH key into place
+  raw: cat /var/tmp/isd_rsa.new >> ~root/.ssh/authorized_keys
+  #raw: cat /var/tmp/isd_rsa.new | awk -F" " '{print $3}' | xargs -i grep -c {} ~root/.ssh/authorized_keys || cat /var/tmp/isd_rsa.new >> ~root/.ssh/authoized_keys
+
+# Instlal Python on RHEL servers
+- name: Install Python for RHEL
+  raw: -a "yum install -y python2 python-simplejson"
+  when: stdout.raw_OS == "Linux"
+
+# Install Python on HP-UX servers
+- name: Create temporary directory to copy install files
+  raw: /usr/bin/mkdir -p /var/tmp/python_install
+  when: raw_OS.stdout | search("HP-UX")
+
+- name: Transfer packages needed for Python 
+  local_action: command /usr/bin/scp /etc/ansible/playbook/packages/hp-ux/python/{{ item }} {{ inventory_hostname }}:/var/tmp/python_install
+  with_items:
+    - bzip2-1.0.6-ia64-11.31.depot
+    - expat-2.2.0-ia64-11.31.depot
+    - gdbm-1.13-ia64-11.31.depot
+    - gettext-0.19.8.1-ia64-11.31.depot
+    - libffi-3.2.1-ia64-11.31.depot
+    - libiconv-1.15-ia64-11.31.depot
+    - libunistring-0.9.7-ia64-11.31.depot
+    - ncurses-6.0-ia64-11.31.depot
+    - openssl-1.0.2k-ia64-11.31.depot
+    - python-2.7.6-ia64-11.31.depot
+    - readline-7.0.003-ia64-11.31.depot
+    - sqlite-3.8.2-ia64-11.31.depot
+    - zlib-1.2.8-ia64-11.31.depot
+  when: raw_OS.stdout | search("HP-UX")
+
+- name: Install Python and its dependencies
+  raw: /usr/sbin/swinstall -s /var/tmp/python_install/{{ item }} \*
+  register: swinstall_result
+  changed_when: "swinstall_result.rc == 1"
+  with_items:
+    - bzip2-1.0.6-ia64-11.31.depot
+    - expat-2.2.0-ia64-11.31.depot
+    - gdbm-1.13-ia64-11.31.depot
+    - gettext-0.19.8.1-ia64-11.31.depot
+    - libffi-3.2.1-ia64-11.31.depot
+    - libiconv-1.15-ia64-11.31.depot
+    - libunistring-0.9.7-ia64-11.31.depot
+    - ncurses-6.0-ia64-11.31.depot
+    - openssl-1.0.2k-ia64-11.31.depot
+    - python-2.7.6-ia64-11.31.depot
+    - readline-7.0.003-ia64-11.31.depot
+    - sqlite-3.8.2-ia64-11.31.depot
+    - zlib-1.2.8-ia64-11.31.depot
+  when: raw_OS.stdout | search("HP-UX")
+
+- name: Create symbolic link from /usr/bin/python to /usr/local/bin/python2
+  raw: test -e /usr/bin/python || ln -s /usr/local/bin/python2 /usr/bin/python
+  when: raw_OS.stdout | search("HP-UX")
